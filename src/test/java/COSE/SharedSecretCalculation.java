@@ -418,10 +418,13 @@ public class SharedSecretCalculation {
 		// Key one
 
 		OneKey myKey1 = OneKey.generateKey(AlgorithmID.EDDSA);
+
+		// Get u coordinate from public key
 		FieldElement y_fromKey1 = KeyRemapping.extractCOSE_y(myKey1);
 		FieldElement uuu1 = KeyRemapping.calcCurve25519_u(y_fromKey1);
-
 		byte[] publicKey1U = uuu1.toByteArray();
+
+		// Get private scalar (from private key)
 		// byte[] privateKey1 = myKey1.get(KeyKeys.OKP_D).GetByteString();
 		byte[] privateKey1H = ((EdDSAPrivateKey) myKey1.AsPrivateKey()).getH();
 		privateKey1H = Arrays.copyOf(privateKey1H, 32);
@@ -434,10 +437,13 @@ public class SharedSecretCalculation {
 		// Key two
 
 		OneKey myKey2 = OneKey.generateKey(AlgorithmID.EDDSA);
+
+		// Get u coordinate from public key
 		FieldElement y_fromKey2 = KeyRemapping.extractCOSE_y(myKey2);
 		FieldElement uuu2 = KeyRemapping.calcCurve25519_u(y_fromKey2);
-
 		byte[] publicKey2U = uuu2.toByteArray();
+
+		// Get private scalar (from private key)
 		// byte[] privateKey2 = myKey2.get(KeyKeys.OKP_D).GetByteString();
 		byte[] privateKey2H = ((EdDSAPrivateKey) myKey2.AsPrivateKey()).getH();
 		privateKey2H = Arrays.copyOf(privateKey2H, 32);
@@ -447,6 +453,8 @@ public class SharedSecretCalculation {
 		// System.out.println("From key two (private part): " +
 		// Utils.bytesToHex(privateKey2));
 
+		// Calculated shared secrets
+		// X25519(my private scalar, your public key U)
 		byte[] sharedSecret1 = X25519(privateKey1H, publicKey2U);
 		byte[] sharedSecret2 = X25519(privateKey2H, publicKey1U);
 
