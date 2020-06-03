@@ -488,7 +488,7 @@ public class SharedSecretCalculation {
 
 		// Get private scalar (from Bob's private key)
 		byte[] bob_hash = ((EdDSAPrivateKey) BobKey.AsPrivateKey()).getH();
-		byte[] bob_private_scalar = Arrays.copyOf(bob_hash, 32);
+		byte[] bob_private_scalar = Arrays.copyOf(bob_hash, 32); // Left half
 
 		/* -- Key two (Alice) -- */
 
@@ -504,7 +504,8 @@ public class SharedSecretCalculation {
 		byte[] alice_private_scalar = Arrays.copyOf(alice_hash, 32);
 
 		/* -- Calculated shared secrets -- */
-		// X25519(my private scalar, your public key U)
+		// secret = X25519(my private scalar, your public key U)
+
 		byte[] sharedSecret1 = X25519(bob_private_scalar, alice_u_array);
 		byte[] sharedSecret2 = X25519(alice_private_scalar, bob_u_array);
 
