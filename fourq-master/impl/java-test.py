@@ -4,6 +4,8 @@ from fields import GFp25519 as GFp, p25519 as p
 
 import binascii
 
+# https://github.com/bifurcation/fourq
+
 def decodeLittleEndian(b, bits):
     return sum([b[i] << 8*i for i in range((bits+7)/8)])
 

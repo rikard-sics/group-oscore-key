@@ -4,6 +4,9 @@ import java.math.BigInteger;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
+
+import javax.xml.bind.DatatypeConverter;
+
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import net.i2p.crypto.eddsa.Utils;
 import net.i2p.crypto.eddsa.math.Field;
@@ -21,6 +24,8 @@ public class SharedSecretCalculation {
 	 * https://tools.ietf.org/html/rfc7748
 	 * 
 	 * https://tools.ietf.org/html/rfc8032
+	 * 
+	 * https://github.com/bifurcation/fourq
 	 */
 
 	// Create the ed25519 field
@@ -238,6 +243,8 @@ public class SharedSecretCalculation {
 
 		/* Test X25519 */
 		
+		System.out.println("Test X25519");
+
 		byte[] k = new byte[] { (byte) 0xa5, (byte) 0x46, (byte) 0xe3, (byte) 0x6b, (byte) 0xf0, (byte) 0x52,
 				(byte) 0x7c, (byte) 0x9d, (byte) 0x3b, (byte) 0x16, (byte) 0x15, (byte) 0x4b, (byte) 0x82, (byte) 0x46,
 				(byte) 0x5e, (byte) 0xdd, (byte) 0x62, (byte) 0x14, (byte) 0x4c, (byte) 0x0a, (byte) 0xc1, (byte) 0xfc,
@@ -258,6 +265,72 @@ public class SharedSecretCalculation {
 		
 		System.out.println("R: " + Utils.bytesToHex(xresult));
 		System.out.println("X25519 result is correct: " + Arrays.equals(c, xresult));
+
+		/* Test X25519 test vectors */
+		// See https://tools.ietf.org/html/rfc7748#section-5.2
+
+		System.out.println("Test X25519 test vectors");
+
+		// First X25519 test vector
+
+		byte[] inputScalar = DatatypeConverter
+				.parseHexBinary("a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4");
+		byte[] inputUCoordinate = DatatypeConverter
+				.parseHexBinary("e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c");
+		byte[] outputUCoordinate = DatatypeConverter
+				.parseHexBinary("c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552");
+
+		byte[] myResult = X25519(inputScalar, inputUCoordinate);
+		System.out.println("First test vector works: " + Arrays.equals(myResult, outputUCoordinate));
+
+		// Second X25519 test vector
+
+		inputScalar = DatatypeConverter
+				.parseHexBinary("4b66e9d4d1b4673c5ad22691957d6af5c11b6421e0ea01d42ca4169e7918ba0d");
+		inputUCoordinate = DatatypeConverter
+				.parseHexBinary("e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493");
+		outputUCoordinate = DatatypeConverter
+				.parseHexBinary("95cbde9476e8907d7aade45cb4b873f88b595a68799fa152e6f8f7647aac7957");
+
+		myResult = X25519(inputScalar, inputUCoordinate);
+		System.out.println("Second test vector works: " + Arrays.equals(myResult, outputUCoordinate));
+
+		// Third X25519 test vector (iterations)
+
+		inputScalar = DatatypeConverter
+				.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+		inputUCoordinate = DatatypeConverter
+				.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+		byte[] resultIteration1 = DatatypeConverter
+				.parseHexBinary("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
+
+		byte[] myResult_1 = X25519(inputScalar, inputUCoordinate);
+		System.out.println("Third test vector works (1): " + Arrays.equals(myResult_1, resultIteration1));
+
+		// --
+
+		byte[] tU = DatatypeConverter
+				.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+		byte[] tK = DatatypeConverter
+				.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+		for (int i = 0; i < 1000; i++) {
+
+			byte[] tR = X25519(tK, tU);
+			tU = tK;
+			tK = tR;
+
+			if (i == 999) {
+				System.out.println(Utils.bytesToHex(tU));
+				System.out.println(Utils.bytesToHex(tK));
+				System.out.println(Utils.bytesToHex(tR));
+			}
+		}
+
+		
+		System.out.println("Third test vector works (1000): " + Arrays.equals(myResult, resultIteration1));
+		System.out.println("Third test vector works (1): " + Arrays.equals(myResult, resultIteration1));
+
+
 
 	}
 
@@ -464,6 +537,7 @@ public class SharedSecretCalculation {
 		return res;
 	}
 
+	// TODO: Do I really need to make new objects?
 	static class Tuple {
 
 		public FieldElement a;
@@ -494,6 +568,8 @@ public class SharedSecretCalculation {
 	/**
 	 * Invert a byte array
 	 * 
+	 * Needed to handle endianness
+	 * 
 	 * @param input the input byte array
 	 * @return the inverted byte array
 	 */
@@ -503,5 +579,15 @@ public class SharedSecretCalculation {
 			output[i] = input[input.length - i - 1];
 		}
 		return output;
+	}
+
+	// https://stackoverflow.com/a/140861
+	public static byte[] hexStringToByteArray(String s) {
+		int len = s.length();
+		byte[] data = new byte[len / 2];
+		for (int i = 0; i < len; i += 2) {
+			data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+		}
+		return data;
 	}
 }
