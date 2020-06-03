@@ -305,36 +305,124 @@ public class SharedSecretCalculation {
 				.parseHexBinary("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
 
 		byte[] myResult_1 = X25519(inputScalar, inputUCoordinate);
-		System.out.println("Third test vector works (1): " + Arrays.equals(myResult_1, resultIteration1));
+		System.out.println("Third test vector works (1 iteration): " + Arrays.equals(myResult_1, resultIteration1));
 
-		// --
+		// 1000 iterations
 
 		byte[] tU = DatatypeConverter
 				.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
 		byte[] tK = DatatypeConverter
 				.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+		byte[] tR = null;
 		for (int i = 0; i < 1000; i++) {
 
-			byte[] tR = X25519(tK, tU);
+			tR = X25519(tK.clone(), tU.clone()).clone();
 			tU = tK;
 			tK = tR;
 
-			if (i == 999) {
-				System.out.println(Utils.bytesToHex(tU));
-				System.out.println(Utils.bytesToHex(tK));
-				System.out.println(Utils.bytesToHex(tR));
-			}
 		}
 
-		
-		System.out.println("Third test vector works (1000): " + Arrays.equals(myResult, resultIteration1));
-		System.out.println("Third test vector works (1): " + Arrays.equals(myResult, resultIteration1));
+		byte[] resultIteration1000 = DatatypeConverter
+				.parseHexBinary("684cf59ba83309552800ef566f2f4d3c1c3887c49360e3875f2eb94d99532c51");
+		byte[] myResult_1000 = tK;
 
+		System.out.println(
+				"Third test vector works (1000 iterations): " + Arrays.equals(myResult_1000, resultIteration1000));
+
+		// 1 000 000 iterations
+		// Takes a very long time ~45 minutes
+
+		boolean runMillionTest = false;
+
+		if (runMillionTest) {
+
+			tU = DatatypeConverter.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+			tK = DatatypeConverter.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+			tR = null;
+			long startTime = System.nanoTime();
+			for (int i = 0; i < 1000000; i++) {
+
+				tR = X25519(tK, tU);
+				tU = tK;
+				tK = tR;
+
+				if (i % 20000 == 0) {
+					long timeElapsed = System.nanoTime() - startTime;
+					System.out.println("Iteration: " + i + ". Time: " + timeElapsed / 1000000 / 1000 + " seconds");
+				}
+			}
+
+			byte[] resultIteration1000000 = DatatypeConverter
+					.parseHexBinary("7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424");
+			byte[] myResult_1000000 = tK;
+
+			System.out.println("Third test vector works (1 000 000 iterations): "
+					+ Arrays.equals(myResult_1000000, resultIteration1000000));
+		}
+
+
+		System.out.println("Testing finished");
+
+		// --
+		// {
+//			byte[] tU = DatatypeConverter
+//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+//			byte[] tK = DatatypeConverter
+//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+//			byte[] tR = null;
+//
+//			tR = X25519(tU, tK).clone();
+//			tU = Arrays.copyOf(tK, tK.length);
+//			tK = Arrays.copyOf(tR, tR.length);
+//
+//			System.out.println("tR: " + Utils.bytesToHex(tR));
+//			System.out.println("tU: " + Utils.bytesToHex(tU));
+//			System.out.println("tK: " + Utils.bytesToHex(tK));
+//
+//			System.out.println("SECOND");
+//			System.out.println("Second input");
+//			System.out.println("Second input tU: " + Utils.bytesToHex(tU));
+//			System.out.println("Second input tK: " + Utils.bytesToHex(tK));
+//
+//			tR = X25519(tK, tU).clone();
+//			tU = Arrays.copyOf(tK, tK.length);
+//			tK = Arrays.copyOf(tR, tR.length);
+//
+//			System.out.println("tR: " + Utils.bytesToHex(tR));
+//			System.out.println("tU: " + Utils.bytesToHex(tU));
+//			System.out.println("tK: " + Utils.bytesToHex(tK));
+//
+//			// Testing 1
+//			byte[] inU = DatatypeConverter
+//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+//			byte[] inK = DatatypeConverter
+//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
+//			byte[] outR = X25519(inK, inU);
+//			System.out.println("OutR: " + Utils.bytesToHex(outR));
+//
+//			inU = hexStringToByteArray("0900000000000000000000000000000000000000000000000000000000000000");
+//			inK = hexStringToByteArray("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
+//			outR = X25519(inU, inK);
+//			System.out.println("OutR: " + Utils.bytesToHex(outR));
+//		}
+//
+//		// Non working test case
+//		{
+//			byte[] inU = hexStringToByteArray("0900000000000000000000000000000000000000000000000000000000000000");
+//			byte[] inK = hexStringToByteArray("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
+//			byte[] outR = X25519(inK, inU);
+//			System.out.println("Bad: " + Utils.bytesToHex(outR));
+//
+//
+//		}
 
 
 	}
 
 	private static byte[] X25519(byte[] k, byte[] u) {
+
+		k = k.clone(); // Needed?
+		u = u.clone(); // Needed?
 
 		BigInteger kn = decodeScalar(k);
 		BigInteger un = decodeUCoordinate(u);

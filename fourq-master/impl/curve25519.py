@@ -2,6 +2,8 @@
 
 from fields import GFp25519 as GFp, p25519 as p
 
+import binascii
+
 ########## Constants ##########
 
 # The curve parameter
@@ -116,9 +118,24 @@ def test_x25519():
 
     TEST_LOOPS = 1001
     for i in range(TEST_LOOPS):
+
+        if i < 5:
+           print "Loop",i
+           
+           print "u pre ", binascii.hexlify(u)
+           print "k pre", binascii.hexlify(k)
+
+
+
         r = x25519(k, u)
         u = k
         k = r
+
+        if i < 5:
+           print "Loop",i
+           print "r", binascii.hexlify(r)
+           print "u", binascii.hexlify(u)
+           print "k", binascii.hexlify(k)
 
         if i == 0:
             test.test("rfc-iter-1", k, k1i)

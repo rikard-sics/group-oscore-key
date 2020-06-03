@@ -190,4 +190,11 @@ r0 = 'c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552'.decode('
 rp = x25519(k0, u0)
 print binascii.hexlify(rp);
 
+# Non working test case
 
+inU = '0900000000000000000000000000000000000000000000000000000000000000'.decode('hex')
+inK = '422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079'.decode('hex')
+
+rr = x25519(inK, inU);
+
+print rr
