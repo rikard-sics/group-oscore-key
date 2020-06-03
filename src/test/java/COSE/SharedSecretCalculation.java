@@ -29,6 +29,8 @@ public class SharedSecretCalculation {
 	 * https://github.com/bifurcation/fourq
 	 * 
 	 * https://blog.mozilla.org/warner/2011/11/29/ed25519-keys/
+	 * 
+	 * See java-test.py I made.
 	 */
 
 	// Create the ed25519 field
