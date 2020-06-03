@@ -30,6 +30,8 @@ def encodeUCoord(u):
 
 # Test decodeLittleEndian
 
+print "# Test decodeLittleEndian"
+
 val1 = 'a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4'.decode('hex')
 k_list1 = [ord(b) for b in val1]
 
@@ -41,6 +43,8 @@ print decodeLittleEndian(k_list2, 255);
 
 # Test decodeScalar
 
+print "# Test decodeScalar"
+
 val3 = '3d262fddf9ec8e88495266fea19a34d28882acef045104d0d1aae121700a779c984c24f8cdd78fbff44943eba368f54b29259a4f1c600ad3'.decode('hex')
 
 val4 = '4b66e9d4d1b4673c5ad22691957d6af5c11b6421e0ea01d42ca4169e7918ba0d'.decode('hex')
@@ -49,6 +53,8 @@ print decodeScalar(val3);
 print decodeScalar(val4);
 
 # Test decodeUCoord
+
+print "# Test decodeUCoord"
 
 val5 = 'e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493'.decode('hex')
 
@@ -59,6 +65,8 @@ print decodeUCoord(val6);
 
 # Test encodeUCoord
 
+print "# Test encodeUCoord"
+
 val7 = 8883857351183929894090759386610649319417338800022198945255395922347792736741
 
 val8 = 5834050823475987305959238492374969056969794868074987349740858586932482375934
@@ -66,9 +74,22 @@ val8 = 5834050823475987305959238492374969056969794868074987349740858586932482375
 print binascii.hexlify(encodeUCoord(val7));
 print binascii.hexlify(encodeUCoord(val8));
 
+# Test cswap
+
+print "# Test cswap"
+
+val9_a = 8883857351183929894090759386610649319417338800022198945255395922347792736741
+val9_b = 5834050823475987305959238492374969056969794868074987349740858586932482375934
+swap = 1
+
+print GFp.cswap(swap, val9_a, val9_b)
+
 # Test X25519
 
 def x25519(k, u):
+    print "k", binascii.hexlify(k);
+    print "u", binascii.hexlify(u);
+
     kn = decodeScalar(k)
     un = decodeUCoord(u)
     return encodeUCoord(x25519_inner(kn, un))
@@ -79,12 +100,21 @@ def x25519_inner(k, u):
     return transform(bits, a24, k, u)
 
 def transform(bits, a24, k, u):
+
+    bits = 255
+
     x1 = u
     x2 = 1
     z2 = 0
     x3 = u
     z3 = 1
     swap = 0
+
+    print "x1", x1
+    print "x2", x2
+    print "z2", z2
+    print "x3", x3
+    print "z3", z3
 
     for t in range(bits-1, -1, -1):
         kt = (k >> t) & 1
@@ -93,6 +123,13 @@ def transform(bits, a24, k, u):
         (x2, x3) = GFp.cswap(swap, x2, x3)
         (z2, z3) = GFp.cswap(swap, z2, z3)
         swap = kt
+
+        if t >= 254:
+          print "A CALC"
+          print "x2", x2
+          print "z2", z2
+          print "kt", kt
+          print "swap", swap
 
         A = GFp.add(x2, z2)
         AA = GFp.sqr(A)
@@ -112,6 +149,29 @@ def transform(bits, a24, k, u):
         z3 = GFp.mul(x1, GG)
         x2 = GFp.mul(AA, BB)
         z2 = GFp.mul(E, GFp.add(AA, GFp.mul(a24, E)))
+
+        #print "t", t
+        if t >= 254:
+          print ".t", t
+          print ".kt", kt
+          print ".A", A
+          print ".AA", AA
+          print ".B", B
+          print ".BB", BB
+          print ".E", E
+
+          print ".C", C
+          print ".D", D
+          print ".DA", DA
+          print ".CB", CB
+
+          print ".x1", x1
+          print ".x2", x2
+          print ".z2", z2
+          print ".x3", x3
+          print ".z3", z3
+
+          print ".swap", swap
 
     (x2, x3) = GFp.cswap(swap, x2, x3)
     (z2, z3) = GFp.cswap(swap, z2, z3)
