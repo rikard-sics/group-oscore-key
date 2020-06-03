@@ -352,14 +352,8 @@ public class SharedSecretCalculation {
 
 	private static byte[] X25519(byte[] k, byte[] u) {
 
-		System.out.println("u: " + u);
-		System.out.println("k: " + k);
-
 		BigInteger kn = decodeScalar(k);
 		BigInteger un = decodeUCoordinate(u);
-
-		System.out.println("kn: " + kn);
-		System.out.println("un: " + un);
 
 		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
 		BigIntegerFieldElement un_bif = new BigIntegerFieldElement(ed25519Field, un);
@@ -397,17 +391,8 @@ public class SharedSecretCalculation {
 		// https://tools.ietf.org/html/rfc7748#page-8
 		FieldElement a24 = new BigIntegerFieldElement(ed25519Field, new BigInteger("121665"));
 
-		System.out.println("x_1:" + x_1);
-		System.out.println("x_2:" + x_2);
-		System.out.println("z_2:" + z_2);
-		System.out.println("x_3:" + x_3);
-		System.out.println("z_3:" + z_3);
-		System.out.println("swap:" + swap);
-		System.out.println("a24:" + a24);
-
 		// Uninitialized variables used in loop
 
-		// BigIntegerFieldElement k_t;
 		FieldElement A;
 		FieldElement AA;
 		FieldElement B;
@@ -429,11 +414,6 @@ public class SharedSecretCalculation {
 
 			swap = swap.xor(k_t); // swap ^= k_t
 
-			if (t >= 254) {
-				System.out.println("swap pre: " + swap);
-				System.out.println("k_t pre: " + k_t);
-			}
-
 			// Swapping
 			Tuple result = cswap(swap, x_2, x_3);
 			x_2 = result.a;
@@ -450,14 +430,6 @@ public class SharedSecretCalculation {
 
 			// Calculation step
 
-			if (t >= 254) {
-				System.out.println("A CALC:");
-				System.out.println("x_2: " + x_2);
-				System.out.println("z_2: " + z_2);
-				System.out.println("k_t: " + k_t);
-				System.out.println("swap: " + swap);
-			}
-			
 			A = x_2.add(z_2); // A = x_2 + z_2
 
 			AA = A.multiply(A); // AA = A^2
@@ -488,28 +460,6 @@ public class SharedSecretCalculation {
 			FieldElement a24_x_E = a24.multiply(E);
 			FieldElement AA__a__a24_x_E = AA.add(a24_x_E);
 			z_2 = E.multiply(AA__a__a24_x_E); // z_2 = E * (AA + a24 * E)
-
-			if (t >= 254) {
-				System.out.println(".t: " + t);
-				System.out.println(".k_t: " + k_t);
-				System.out.println(".A: " + A);
-				System.out.println(".AA:" + AA);
-				System.out.println(".B:" + B);
-				System.out.println(".BB: " + BB);
-				System.out.println(".E: " + E);
-				System.out.println(".C: " + C);
-				System.out.println(".D: " + D);
-				System.out.println(".DA: " + DA);
-				System.out.println(".CB: " + CB);
-
-				System.out.println(".x_1:" + x_1);
-				System.out.println(".x_2:" + x_2);
-				System.out.println(".z_2:" + z_2);
-				System.out.println(".x_3:" + x_3);
-				System.out.println(".z_3:" + z_3);
-
-				System.out.println(".swap:" + swap);
-			}
 		}
 
 		// Final swap step
@@ -526,9 +476,6 @@ public class SharedSecretCalculation {
 		z_3 = result2.b;
 		// End swapping
 
-		// System.out.println("z_2 end result: " + z_2);
-		// System.out.println("z_2 end result: " + x_2);
-
 		// Return step
 
 		// Calculate p
@@ -539,25 +486,14 @@ public class SharedSecretCalculation {
 		// Calculate p minus 2
 		FieldElement p_s_2 = p.subtractOne().subtractOne();
 
-		// System.out.println("p minus 2: " + p_s_2);
-
-		// BigInteger p_s_2__bi = new
-		// BigInteger(invertArray(p_s_2.toByteArray()));
-		// BigIntegerFieldElement p_s_2__bif = new
-		// BigIntegerFieldElement(ed25519Field, p_s_2__bi);
-
 		// Calculate z_2^(p - 2)
 		BigInteger z_2_bi = new BigInteger(invertArray(z_2.toByteArray()));
 		BigIntegerFieldElement z_2_bif = new BigIntegerFieldElement(ed25519Field, z_2_bi);
 		FieldElement val = z_2_bif.pow(p_s_2);
 
-		System.out.println("val: " + val);
-
 		// Calculate return vale
 		FieldElement ret = x_2.multiply(val);
 
-		System.out.println("Result: " + ret);
-		
 		return ret;
 
 	}
