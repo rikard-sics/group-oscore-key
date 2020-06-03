@@ -466,12 +466,53 @@ public class SharedSecretCalculation {
 		
 		/* End testing */
 
+		sharedSecretTest();
+
 		System.out.println("Testing finished");
 
 		// --
 
 	}
 
+
+	private static void sharedSecretTest() throws CoseException {
+
+		/* -- Key one (Bob) -- */
+
+		OneKey BobKey = OneKey.generateKey(AlgorithmID.EDDSA);
+
+		// Calculate u coordinate from Bob's public key
+		FieldElement bob_y = KeyRemapping.extractCOSE_y(BobKey);
+		FieldElement bob_u = KeyRemapping.calcCurve25519_u(bob_y);
+		byte[] bob_u_array = bob_u.toByteArray();
+
+		// Get private scalar (from Bob's private key)
+		byte[] bob_hash = ((EdDSAPrivateKey) BobKey.AsPrivateKey()).getH();
+		byte[] bob_private_scalar = Arrays.copyOf(bob_hash, 32);
+
+		/* -- Key two (Alice) -- */
+
+		OneKey AliceKey = OneKey.generateKey(AlgorithmID.EDDSA);
+
+		// Calculate u coordinate from Alice's public key
+		FieldElement alice_y = KeyRemapping.extractCOSE_y(AliceKey);
+		FieldElement alice_u = KeyRemapping.calcCurve25519_u(alice_y);
+		byte[] alice_u_array = alice_u.toByteArray();
+
+		// Get private scalar (from Alice's private key)
+		byte[] alice_hash = ((EdDSAPrivateKey) AliceKey.AsPrivateKey()).getH();
+		byte[] alice_private_scalar = Arrays.copyOf(alice_hash, 32);
+
+		/* -- Calculated shared secrets -- */
+		// X25519(my private scalar, your public key U)
+		byte[] sharedSecret1 = X25519(bob_private_scalar, alice_u_array);
+		byte[] sharedSecret2 = X25519(alice_private_scalar, bob_u_array);
+
+		System.out.println("Shared secret 1: " + Utils.bytesToHex(sharedSecret1));
+		System.out.println("Shared secret 2: " + Utils.bytesToHex(sharedSecret2));
+		System.out.println("Shared secrets match: " + Arrays.equals(sharedSecret1, sharedSecret2));
+
+	}
 
 	private static byte[] X25519(byte[] k, byte[] u) {
 
