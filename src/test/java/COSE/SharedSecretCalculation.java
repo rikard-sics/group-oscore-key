@@ -284,6 +284,47 @@ public class SharedSecretCalculation {
 		System.out.println("Actual: " + Utils.bytesToHex(resArray));
 		System.out.println("Same: " + Arrays.equals(correctArray, resArray));
 
+		// Input value:
+		// 5834050823475987305959238492374969056969794868074987349740858586932482375934
+		inputInt = new BigInteger("5834050823475987305959238492374969056969794868074987349740858586932482375934");
+
+		// Output value (from Python code)
+		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a413
+		correctArray = new byte[] { (byte) 0xfe, (byte) 0x80, (byte) 0x97, (byte) 0x47, (byte) 0xf0, (byte) 0x4e,
+				(byte) 0x46, (byte) 0xf8, (byte) 0x35, (byte) 0xaa, (byte) 0x79, (byte) 0x60, (byte) 0xdc, (byte) 0x0d,
+				(byte) 0xa8, (byte) 0x52, (byte) 0x1d, (byte) 0x4a, (byte) 0x68, (byte) 0x14, (byte) 0xd9, (byte) 0x0a,
+				(byte) 0xca, (byte) 0x92, (byte) 0x5f, (byte) 0xa0, (byte) 0x85, (byte) 0xfa, (byte) 0xab, (byte) 0xf4,
+				(byte) 0xe5, (byte) 0x0c };
+
+		resArray = encodeUCoordinate(inputInt);
+
+		System.out.println("Expected: " + Utils.bytesToHex(correctArray));
+		System.out.println("Actual: " + Utils.bytesToHex(resArray));
+		System.out.println("Same: " + Arrays.equals(correctArray, resArray));
+
+		/* Test cswap */
+
+		// First no swap
+
+		BigInteger a_bi = new BigInteger(
+				"8883857351183929894090759386610649319417338800022198945255395922347792736741");
+		BigInteger b_bi = new BigInteger(
+				"5834050823475987305959238492374969056969794868074987349740858586932482375934");
+
+		BigIntegerFieldElement a = new BigIntegerFieldElement(ed25519Field, a_bi);
+		BigIntegerFieldElement b = new BigIntegerFieldElement(ed25519Field, b_bi);
+
+		BigInteger swap = BigInteger.ZERO;
+
+		Tuple result = cswap(swap, a, b);
+		System.out.println("Swap correct: " + result.a.equals(a) + " and " + result.b.equals(b));
+
+		// Now do swap
+
+		swap = BigInteger.ONE;
+		result = cswap(swap, a, b);
+		System.out.println("Swap correct: " + result.a.equals(b) + " and " + result.b.equals(a));
+
 		/* Test X25519 */
 		
 		byte[] k0 = new byte[] { (byte) 0xa5, (byte) 0x46, (byte) 0xe3, (byte) 0x6b, (byte) 0xf0, (byte) 0x52,
@@ -310,13 +351,20 @@ public class SharedSecretCalculation {
 	}
 
 	private static byte[] X25519(byte[] k, byte[] u) {
+
+		System.out.println("u: " + u);
+		System.out.println("k: " + k);
+
 		BigInteger kn = decodeScalar(k);
 		BigInteger un = decodeUCoordinate(u);
+
+		System.out.println("kn: " + kn);
+		System.out.println("un: " + un);
 
 		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
 		BigIntegerFieldElement un_bif = new BigIntegerFieldElement(ed25519Field, un);
 
-		FieldElement res = X25519_inner(kn_bif, un_bif);
+		FieldElement res = X25519_calculate(kn_bif, un_bif);
 
 		BigInteger res_bi = new BigInteger(invertArray(res.toByteArray()));
 
@@ -329,7 +377,7 @@ public class SharedSecretCalculation {
 	 * 
 	 * See https://tools.ietf.org/html/rfc7748#section-5
 	 */
-	private static FieldElement X25519_inner(FieldElement u, FieldElement k) {
+	private static FieldElement X25519_calculate(FieldElement k, FieldElement u) {
 
 		// Set bits
 		// https://tools.ietf.org/html/rfc7748#page-7
@@ -348,6 +396,14 @@ public class SharedSecretCalculation {
 		
 		// https://tools.ietf.org/html/rfc7748#page-8
 		FieldElement a24 = new BigIntegerFieldElement(ed25519Field, new BigInteger("121665"));
+
+		System.out.println("x_1:" + x_1);
+		System.out.println("x_2:" + x_2);
+		System.out.println("z_2:" + z_2);
+		System.out.println("x_3:" + x_3);
+		System.out.println("z_3:" + z_3);
+		System.out.println("swap:" + swap);
+		System.out.println("a24:" + a24);
 
 		// Uninitialized variables used in loop
 
@@ -371,30 +427,37 @@ public class SharedSecretCalculation {
 			// k_t = (k >> t) & 1
 			BigInteger k_t = (k_bi.shiftRight(t)).and(BigInteger.ONE);
 
-			swap = swap.and(k_t); // swap ^= k_t
+			swap = swap.xor(k_t); // swap ^= k_t
 
-			// Swapping: Extract to own method later
-			// cswap(swap, x_2, x_3);
-			if (swap.equals(BigInteger.ONE)) {
-				FieldElement temp = x_3;
-				x_3 = x_2;
-				x_2 = temp;
+			if (t >= 254) {
+				System.out.println("swap pre: " + swap);
+				System.out.println("k_t pre: " + k_t);
 			}
+
+			// Swapping
+			Tuple result = cswap(swap, x_2, x_3);
+			x_2 = result.a;
+			x_3 = result.b;
 			// End swapping
 
-			// Swapping: Extract to own method later
-			// cswap(swap, z_2, z_3);
-			if (swap.equals(BigInteger.ONE)) {
-				FieldElement temp = z_3;
-				z_3 = z_2;
-				z_2 = temp;
-			}
+			// Swapping
+			Tuple result2 = cswap(swap, z_2, z_3);
+			z_2 = result2.a;
+			z_3 = result2.b;
 			// End swapping
 
 			swap = k_t; // swap = k_t
 
 			// Calculation step
 
+			if (t >= 254) {
+				System.out.println("A CALC:");
+				System.out.println("x_2: " + x_2);
+				System.out.println("z_2: " + z_2);
+				System.out.println("k_t: " + k_t);
+				System.out.println("swap: " + swap);
+			}
+			
 			A = x_2.add(z_2); // A = x_2 + z_2
 
 			AA = A.multiply(A); // AA = A^2
@@ -425,26 +488,42 @@ public class SharedSecretCalculation {
 			FieldElement a24_x_E = a24.multiply(E);
 			FieldElement AA__a__a24_x_E = AA.add(a24_x_E);
 			z_2 = E.multiply(AA__a__a24_x_E); // z_2 = E * (AA + a24 * E)
+
+			if (t >= 254) {
+				System.out.println(".t: " + t);
+				System.out.println(".k_t: " + k_t);
+				System.out.println(".A: " + A);
+				System.out.println(".AA:" + AA);
+				System.out.println(".B:" + B);
+				System.out.println(".BB: " + BB);
+				System.out.println(".E: " + E);
+				System.out.println(".C: " + C);
+				System.out.println(".D: " + D);
+				System.out.println(".DA: " + DA);
+				System.out.println(".CB: " + CB);
+
+				System.out.println(".x_1:" + x_1);
+				System.out.println(".x_2:" + x_2);
+				System.out.println(".z_2:" + z_2);
+				System.out.println(".x_3:" + x_3);
+				System.out.println(".z_3:" + z_3);
+
+				System.out.println(".swap:" + swap);
+			}
 		}
 
 		// Final swap step
 		
-		// Swapping: Extract to own method later
-		// cswap(swap, x_2, x_3);
-		if (swap.equals(BigInteger.ONE)) {
-			FieldElement temp = x_3;
-			x_3 = x_2;
-			x_2 = temp;
-		}
+		// Swapping
+		Tuple result = cswap(swap, x_2, x_3);
+		x_2 = result.a;
+		x_3 = result.b;
 		// End swapping
 
-		// Swapping: Extract to own method later
-		// cswap(swap, z_2, z_3);
-		if (swap.equals(BigInteger.ONE)) {
-			FieldElement temp = z_3;
-			z_3 = z_2;
-			z_2 = temp;
-		}
+		// Swapping
+		Tuple result2 = cswap(swap, z_2, z_3);
+		z_2 = result2.a;
+		z_3 = result2.b;
 		// End swapping
 
 		// System.out.println("z_2 end result: " + z_2);
@@ -538,6 +617,35 @@ public class SharedSecretCalculation {
 
 		return res;
 	}
+
+	static class Tuple {
+
+		public FieldElement a;
+		public FieldElement b;
+
+		Tuple(FieldElement a, FieldElement b) {
+
+			BigInteger a_bi = new BigInteger(invertArray(a.toByteArray()));
+			BigInteger b_bi = new BigInteger(invertArray(b.toByteArray()));
+
+			this.a = new BigIntegerFieldElement(ed25519Field, a_bi);
+			this.b = new BigIntegerFieldElement(ed25519Field, b_bi);
+		}
+
+	}
+
+	// TODO: Make constant time
+	private static Tuple cswap(BigInteger swap, FieldElement a, FieldElement b) {
+
+		if (swap.equals(BigInteger.ONE)) {
+			return new Tuple(b, a);
+		} else {
+			return new Tuple(a, b);
+		}
+
+	}
+
+	///////////////////////////
 
 
 	/**

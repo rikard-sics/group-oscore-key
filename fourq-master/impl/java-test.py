@@ -120,6 +120,10 @@ def transform(bits, a24, k, u):
         kt = (k >> t) & 1
         swap ^= kt
 
+        if t >= 254:
+          print "swap pre:", swap
+          print "kt pre:", kt
+
         (x2, x3) = GFp.cswap(swap, x2, x3)
         (z2, z3) = GFp.cswap(swap, z2, z3)
         swap = kt
