@@ -459,58 +459,6 @@ public class SharedSecretCalculation {
 		System.out.println("Testing finished");
 
 		// --
-		// {
-//			byte[] tU = DatatypeConverter
-//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
-//			byte[] tK = DatatypeConverter
-//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
-//			byte[] tR = null;
-//
-//			tR = X25519(tU, tK).clone();
-//			tU = Arrays.copyOf(tK, tK.length);
-//			tK = Arrays.copyOf(tR, tR.length);
-//
-//			System.out.println("tR: " + Utils.bytesToHex(tR));
-//			System.out.println("tU: " + Utils.bytesToHex(tU));
-//			System.out.println("tK: " + Utils.bytesToHex(tK));
-//
-//			System.out.println("SECOND");
-//			System.out.println("Second input");
-//			System.out.println("Second input tU: " + Utils.bytesToHex(tU));
-//			System.out.println("Second input tK: " + Utils.bytesToHex(tK));
-//
-//			tR = X25519(tK, tU).clone();
-//			tU = Arrays.copyOf(tK, tK.length);
-//			tK = Arrays.copyOf(tR, tR.length);
-//
-//			System.out.println("tR: " + Utils.bytesToHex(tR));
-//			System.out.println("tU: " + Utils.bytesToHex(tU));
-//			System.out.println("tK: " + Utils.bytesToHex(tK));
-//
-//			// Testing 1
-//			byte[] inU = DatatypeConverter
-//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
-//			byte[] inK = DatatypeConverter
-//					.parseHexBinary("0900000000000000000000000000000000000000000000000000000000000000");
-//			byte[] outR = X25519(inK, inU);
-//			System.out.println("OutR: " + Utils.bytesToHex(outR));
-//
-//			inU = hexStringToByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-//			inK = hexStringToByteArray("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
-//			outR = X25519(inU, inK);
-//			System.out.println("OutR: " + Utils.bytesToHex(outR));
-//		}
-//
-//		// Non working test case
-//		{
-//			byte[] inU = hexStringToByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-//			byte[] inK = hexStringToByteArray("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
-//			byte[] outR = X25519(inK, inU);
-//			System.out.println("Bad: " + Utils.bytesToHex(outR));
-//
-//
-//		}
-
 
 	}
 
