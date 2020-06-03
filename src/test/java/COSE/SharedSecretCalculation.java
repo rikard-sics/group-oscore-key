@@ -7,13 +7,13 @@ import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
 
+import net.i2p.crypto.eddsa.EdDSAPrivateKey;
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import net.i2p.crypto.eddsa.Utils;
 import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerLittleEndianEncoding;
-import net.i2p.crypto.eddsa.math.ed25519.Ed25519FieldElement;
 
 public class SharedSecretCalculation {
 
@@ -27,6 +27,8 @@ public class SharedSecretCalculation {
 	 * https://tools.ietf.org/html/rfc8032
 	 * 
 	 * https://github.com/bifurcation/fourq
+	 * 
+	 * https://blog.mozilla.org/warner/2011/11/29/ed25519-keys/
 	 */
 
 	// Create the ed25519 field
@@ -398,8 +400,20 @@ public class SharedSecretCalculation {
 
 		/* Test starting from COSE Keys */
 
+		/*
+		 * Key section:
+		 * 
+		 * Ed25519 keys start life as a 32-byte (256-bit) uniformly random
+		 * binary seed (e.g. the output of SHA256 on some random input). The
+		 * seed is then hashed using SHA512, which gets you 64 bytes (512 bits),
+		 * which is then split into a "left half" (the first 32 bytes) and a
+		 * "right half". The left half is massaged into a curve25519 private
+		 * scalar "a" by setting and clearing a few high/low-order bits.
+		 * 
+		 * https://blog.mozilla.org/warner/2011/11/29/ed25519-keys/
+		 */
+		
 		System.out.println("Test starting from COSE Keys");
-
 		
 		// Key one
 
@@ -408,10 +422,14 @@ public class SharedSecretCalculation {
 		FieldElement uuu1 = KeyRemapping.calcCurve25519_u(y_fromKey1);
 
 		byte[] publicKey1U = uuu1.toByteArray();
-		byte[] privateKey1 = myKey1.get(KeyKeys.OKP_D).GetByteString();
+		// byte[] privateKey1 = myKey1.get(KeyKeys.OKP_D).GetByteString();
+		byte[] privateKey1H = ((EdDSAPrivateKey) myKey1.AsPrivateKey()).getH();
+		privateKey1H = Arrays.copyOf(privateKey1H, 32);
 
+		System.out.println("H priv1: " + Utils.bytesToHex(privateKey1H));
 		System.out.println("u from key one (public part): " + uuu1);
-		System.out.println("From key one (private part): " + Utils.bytesToHex(privateKey1));
+		// System.out.println("From key one (private part): " +
+		// Utils.bytesToHex(privateKey1));
 
 		// Key two
 
@@ -420,17 +438,22 @@ public class SharedSecretCalculation {
 		FieldElement uuu2 = KeyRemapping.calcCurve25519_u(y_fromKey2);
 
 		byte[] publicKey2U = uuu2.toByteArray();
-		byte[] privateKey2 = myKey2.get(KeyKeys.OKP_D).GetByteString();
+		// byte[] privateKey2 = myKey2.get(KeyKeys.OKP_D).GetByteString();
+		byte[] privateKey2H = ((EdDSAPrivateKey) myKey2.AsPrivateKey()).getH();
+		privateKey2H = Arrays.copyOf(privateKey2H, 32);
 
+		System.out.println("H priv2: " + Utils.bytesToHex(privateKey2H));
 		System.out.println("u from key two (public part): " + uuu2);
-		System.out.println("From key two (private part): " + Utils.bytesToHex(privateKey2));
+		// System.out.println("From key two (private part): " +
+		// Utils.bytesToHex(privateKey2));
 
-		byte[] sharedSecret1 = X25519(privateKey1, publicKey2U);
-		byte[] sharedSecret2 = X25519(privateKey2, publicKey1U);
+		byte[] sharedSecret1 = X25519(privateKey1H, publicKey2U);
+		byte[] sharedSecret2 = X25519(privateKey2H, publicKey1U);
 
 		System.out.println("Shared secret 1: " + Utils.bytesToHex(sharedSecret1));
 		System.out.println("Shared secret 2: " + Utils.bytesToHex(sharedSecret2));
-
+		System.out.println("Shared secrets match: " + Arrays.equals(sharedSecret1, sharedSecret2));
+		
 		/* End testing */
 
 		System.out.println("Testing finished");
@@ -498,6 +521,28 @@ public class SharedSecretCalculation {
 		u = u.clone(); // Needed?
 
 		BigInteger kn = decodeScalar(k);
+		BigInteger un = decodeUCoordinate(u);
+
+		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
+		BigIntegerFieldElement un_bif = new BigIntegerFieldElement(ed25519Field, un);
+
+		FieldElement res = X25519_calculate(kn_bif, un_bif);
+
+		BigInteger res_bi = new BigInteger(invertArray(res.toByteArray()));
+
+		return encodeUCoordinate(res_bi);
+
+	}
+
+	// Skips decoding the scalar k
+	// Since it may not be encoded in the first place
+	// But in the end it seems decoding multiple times changes nothing
+	private static byte[] X25519_noDecodeScalar(byte[] k, byte[] u) {
+
+		k = k.clone(); // Needed?
+		u = u.clone(); // Needed?
+
+		BigInteger kn = decodeLittleEndian(k, 255);
 		BigInteger un = decodeUCoordinate(u);
 
 		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
