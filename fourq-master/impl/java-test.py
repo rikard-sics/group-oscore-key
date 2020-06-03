@@ -66,6 +66,62 @@ val8 = 5834050823475987305959238492374969056969794868074987349740858586932482375
 print binascii.hexlify(encodeUCoord(val7));
 print binascii.hexlify(encodeUCoord(val8));
 
+# Test X25519
 
+def x25519(k, u):
+    kn = decodeScalar(k)
+    un = decodeUCoord(u)
+    return encodeUCoord(x25519_inner(kn, un))
+
+def x25519_inner(k, u):
+    bits = 255
+    a24 = 121665
+    return transform(bits, a24, k, u)
+
+def transform(bits, a24, k, u):
+    x1 = u
+    x2 = 1
+    z2 = 0
+    x3 = u
+    z3 = 1
+    swap = 0
+
+    for t in range(bits-1, -1, -1):
+        kt = (k >> t) & 1
+        swap ^= kt
+
+        (x2, x3) = GFp.cswap(swap, x2, x3)
+        (z2, z3) = GFp.cswap(swap, z2, z3)
+        swap = kt
+
+        A = GFp.add(x2, z2)
+        AA = GFp.sqr(A)
+        B = GFp.sub(x2, z2)
+        BB = GFp.sqr(B)
+        E = GFp.sub(AA, BB)
+
+        C = GFp.add(x3, z3)
+        D = GFp.sub(x3, z3)
+        DA = GFp.mul(D, A)
+        CB = GFp.mul(C, B)
+
+        FF = GFp.sqr(GFp.add(DA, CB))
+        GG = GFp.sqr(GFp.sub(DA, CB))
+
+        x3 = FF
+        z3 = GFp.mul(x1, GG)
+        x2 = GFp.mul(AA, BB)
+        z2 = GFp.mul(E, GFp.add(AA, GFp.mul(a24, E)))
+
+    (x2, x3) = GFp.cswap(swap, x2, x3)
+    (z2, z3) = GFp.cswap(swap, z2, z3)
+    return GFp.mul(x2, GFp.inv(z2))
+
+k0 = 'a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4'.decode('hex')
+u0 = 'e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c'.decode('hex')
+r0 = 'c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552'.decode('hex')
+
+rp = x25519(k0, u0)
+print binascii.hexlify(rp);
 
 
