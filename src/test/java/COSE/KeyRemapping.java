@@ -110,6 +110,9 @@ public class KeyRemapping {
 		FieldElement uuu2 = calcCurve25519_u(y_fromKey);
 		// calcCurve25519_v(x_fromKey, uuu1);
 		// calcCurve25519_v(x_fromKey, uuu2);
+		//
+		System.out.println(uuu1);
+		System.out.println(uuu2);
 
 	}
 
@@ -119,7 +122,7 @@ public class KeyRemapping {
 	 * @param y the Ed25519 y coordinate
 	 * @return the Curve25519 u coordinate
 	 */
-	private static FieldElement calcCurve25519_u(FieldElement y) {
+	static FieldElement calcCurve25519_u(FieldElement y) {
 
 		/* Calculate u from y */
 		// u = (1+y)/(1-y)
@@ -148,7 +151,7 @@ public class KeyRemapping {
 	 * @param u the Curve25519 u coordinate
 	 * @return the Curve25519 v coordinate
 	 */
-	private static FieldElement calcCurve25519_v(FieldElement x, FieldElement u) {
+	static FieldElement calcCurve25519_v(FieldElement x, FieldElement u) {
 
 		/* Calculate v from u and x */
 		// v = sqrt(-486664)*u/x
@@ -177,7 +180,7 @@ public class KeyRemapping {
 	 * 
 	 * @throws CoseException if retrieving public key part fails
 	 */
-	private static FieldElement extractCOSE_y_alt(OneKey key) throws CoseException {
+	static FieldElement extractCOSE_y_alt(OneKey key) throws CoseException {
 		EdDSAPublicKey pubKey = (EdDSAPublicKey) key.AsPublicKey();
 
 		// Get projective coordinates for Y and Z
@@ -201,7 +204,7 @@ public class KeyRemapping {
 	 * 
 	 * @throws CoseException if retrieving public key part fails
 	 */
-	private static FieldElement extractCOSE_y(OneKey key) throws CoseException {
+	static FieldElement extractCOSE_y(OneKey key) throws CoseException {
 
 		// Retrieve X value from COSE key as byte array
 		byte[] X_value = key.get(KeyKeys.OKP_X).GetByteString();
@@ -230,7 +233,7 @@ public class KeyRemapping {
 	 * 
 	 * @throws CoseException if retrieving public key part fails
 	 */
-	private static FieldElement extractCOSE_x(OneKey key) throws CoseException {
+	static FieldElement extractCOSE_x(OneKey key) throws CoseException {
 		EdDSAPublicKey pubKey = (EdDSAPublicKey) key.AsPublicKey();
 
 		// Get projective coordinates for X and Z

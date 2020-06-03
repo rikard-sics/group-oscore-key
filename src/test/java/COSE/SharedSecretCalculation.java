@@ -13,6 +13,7 @@ import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerLittleEndianEncoding;
+import net.i2p.crypto.eddsa.math.ed25519.Ed25519FieldElement;
 
 public class SharedSecretCalculation {
 
@@ -395,6 +396,43 @@ public class SharedSecretCalculation {
 		System.out
 				.println("Shared secret matches correct value: " + Arrays.equals(sharedSecret_calc_one, sharedSecret));
 
+		/* Test starting from COSE Keys */
+
+		System.out.println("Test starting from COSE Keys");
+
+		
+		// Key one
+
+		OneKey myKey1 = OneKey.generateKey(AlgorithmID.EDDSA);
+		FieldElement y_fromKey1 = KeyRemapping.extractCOSE_y(myKey1);
+		FieldElement uuu1 = KeyRemapping.calcCurve25519_u(y_fromKey1);
+
+		byte[] publicKey1U = uuu1.toByteArray();
+		byte[] privateKey1 = myKey1.get(KeyKeys.OKP_D).GetByteString();
+
+		System.out.println("u from key one (public part): " + uuu1);
+		System.out.println("From key one (private part): " + Utils.bytesToHex(privateKey1));
+
+		// Key two
+
+		OneKey myKey2 = OneKey.generateKey(AlgorithmID.EDDSA);
+		FieldElement y_fromKey2 = KeyRemapping.extractCOSE_y(myKey2);
+		FieldElement uuu2 = KeyRemapping.calcCurve25519_u(y_fromKey2);
+
+		byte[] publicKey2U = uuu2.toByteArray();
+		byte[] privateKey2 = myKey2.get(KeyKeys.OKP_D).GetByteString();
+
+		System.out.println("u from key two (public part): " + uuu2);
+		System.out.println("From key two (private part): " + Utils.bytesToHex(privateKey2));
+
+		byte[] sharedSecret1 = X25519(privateKey1, publicKey2U);
+		byte[] sharedSecret2 = X25519(privateKey2, publicKey1U);
+
+		System.out.println("Shared secret 1: " + Utils.bytesToHex(sharedSecret1));
+		System.out.println("Shared secret 2: " + Utils.bytesToHex(sharedSecret2));
+
+		/* End testing */
+
 		System.out.println("Testing finished");
 
 		// --
@@ -452,6 +490,7 @@ public class SharedSecretCalculation {
 
 
 	}
+
 
 	private static byte[] X25519(byte[] k, byte[] u) {
 
