@@ -13,7 +13,7 @@ import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerLittleEndianEncoding;
 import net.i2p.crypto.eddsa.math.ed25519.Ed25519FieldElement;
 
-public class Testing8 {
+public class KeyRemapping {
 
 	/*
 	 * Useful links:
@@ -257,7 +257,4 @@ public class Testing8 {
 		}
 		return output;
 	}
-
-	/* X5519 related functions below */
-
 }
