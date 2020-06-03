@@ -4,14 +4,12 @@ import java.math.BigInteger;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
-import net.i2p.crypto.eddsa.EdDSAPublicKey;
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import net.i2p.crypto.eddsa.Utils;
 import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerLittleEndianEncoding;
-import net.i2p.crypto.eddsa.math.ed25519.Ed25519FieldElement;
 
 public class SharedSecretCalculation {
 
@@ -30,92 +28,15 @@ public class SharedSecretCalculation {
 			Utils.hexToBytes("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
 			new BigIntegerLittleEndianEncoding());
 
-	// Value of sqrt(-486664) hardcoded (note that there are 2 roots)
-	private static BigIntegerFieldElement root = new BigIntegerFieldElement(ed25519Field,
-			new BigInteger("51042569399160536130206135233146329284152202253034631822681833788666877215207"));
-
 	public static void main(String args[]) throws Exception {
 		Provider EdDSA = new EdDSASecurityProvider();
 		Security.insertProviderAt(EdDSA, 0);
 
-
-		// Define test values x and y from RFC7748. Created as field elements to
-		// use for calculations in the field.
-		BigIntegerFieldElement x = new BigIntegerFieldElement(ed25519Field,
-				new BigInteger("15112221349535400772501151409588531511454012693041857206046113283949847762202"));
-		BigIntegerFieldElement y = new BigIntegerFieldElement(ed25519Field,
-				new BigInteger("46316835694926478169428394003475163141307993866256225615783033603165251855960"));
-
-		// Define correctly calculated values of u and v from RFC7748
-		BigIntegerFieldElement u_correct = new BigIntegerFieldElement(ed25519Field, new BigInteger("9"));
-		BigIntegerFieldElement v_correct = new BigIntegerFieldElement(ed25519Field,
-				new BigInteger("14781619447589544791020593568409986887264606134616475288964881837755586237401"));
-
-		// Calculate u and v values
-		FieldElement u = calcCurve25519_u(y);
-		FieldElement v = calcCurve25519_v(x, u);
-
-		// // Print calculated values
-		// System.out.println("x: " + x);
-		// System.out.println("y: " + y);
-		//
-		// System.out.println("v: " + v);
-		// System.out.println("u: " + u);
-		//
-		// // Check that calculated u and v values are correct
-		// if (Arrays.equals(u.toByteArray(), u_correct.toByteArray())) {
-		// System.out.println("u value is correct!");
-		// } else {
-		// System.out.println("u value is INCORRECT!");
-		// }
-		// if (Arrays.equals(v.toByteArray(), v_correct.toByteArray())) {
-		// System.out.println("v value is correct!");
-		// } else {
-		// System.out.println("v value is INCORRECT!");
-		// }
-		//
-		// /**/
-		// System.out.println();
-		// System.out.println();
-		// /**/
-		//
-		// // Testing starting with a COSE Key
-		//
-		// OneKey myKey = OneKey.generateKey(AlgorithmID.EDDSA);
-		// FieldElement y_fromKeyAlt = extractCOSE_y_alt(myKey);
-		// FieldElement y_fromKey = extractCOSE_y(myKey);
-		//
-		// System.out.println("y from COSE key (alt): " + y_fromKeyAlt);
-		// System.out.println("y from COSE key: " + y_fromKey);
-		// System.out.println("COSE key X param_: " + myKey.get(KeyKeys.OKP_X));
-		//
-		// System.out.println("y from COSE key (alt) (bytes): " +
-		// Utils.bytesToHex(y_fromKeyAlt.toByteArray()));
-		// System.out.println("y from COSE key (bytes): " +
-		// Utils.bytesToHex(y_fromKey.toByteArray()));
-		//
-		// // Check that calculating y in both ways give the same result
-		// if (Arrays.equals(y_fromKeyAlt.toByteArray(),
-		// y_fromKey.toByteArray())) {
-		// System.out.println("y from key value is correct!");
-		// } else {
-		// System.out.println("y from key value is INCORRECT!");
-		// }
-		//
-		// /**/
-		// System.out.println();
-		// System.out.println();
-		// /**/
-		//
-		// FieldElement x_fromKey = extractCOSE_x(myKey);
-		// System.out.println("x from COSE key: " + x_fromKey);
-		//
-		// FieldElement uuu1 = calcCurve25519_u(y_fromKeyAlt);
-		// FieldElement uuu2 = calcCurve25519_u(y_fromKey);
-		// // calcCurve25519_v(x_fromKey, uuu1);
-		// // calcCurve25519_v(x_fromKey, uuu2);
+		/* Start tests */
 
 		/* -- Test decodeLittleEndian -- */
+
+		System.out.println("Test decodeLittleEndian");
 
 		// Input value:
 		// a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4
@@ -158,6 +79,8 @@ public class SharedSecretCalculation {
 		System.out.println("Same: " + correct.equals(res));
 
 		/* -- Test decodeScalar -- */
+
+		System.out.println("Test decodeScalar");
 
 		// Input value:
 		// 3d262fddf9ec8e88495266fea19a34d28882acef045104d0d1aae121700a779c984c24f8cdd78fbff44943eba368f54b29259a4f1c600ad3
@@ -202,6 +125,8 @@ public class SharedSecretCalculation {
 
 		/* -- Test decodeUCoordinate -- */
 
+		System.out.println("Test decodeUCoordinate");
+
 		// Input value:
 		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493
 		input = new byte[] { (byte) 0xe5, (byte) 0x21, (byte) 0x0f, (byte) 0x12, (byte) 0x78, (byte) 0x68, (byte) 0x11,
@@ -245,6 +170,8 @@ public class SharedSecretCalculation {
 
 		/* -- Test encodeUCoordinate -- */
 
+		System.out.println("Test encodeUCoordinate");
+
 		// Input value:
 		// 8883857351183929894090759386610649319417338800022198945255395922347792736741
 		BigInteger inputInt = new BigInteger(
@@ -284,25 +211,9 @@ public class SharedSecretCalculation {
 		System.out.println("Actual: " + Utils.bytesToHex(resArray));
 		System.out.println("Same: " + Arrays.equals(correctArray, resArray));
 
-		// Input value:
-		// 5834050823475987305959238492374969056969794868074987349740858586932482375934
-		inputInt = new BigInteger("5834050823475987305959238492374969056969794868074987349740858586932482375934");
-
-		// Output value (from Python code)
-		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a413
-		correctArray = new byte[] { (byte) 0xfe, (byte) 0x80, (byte) 0x97, (byte) 0x47, (byte) 0xf0, (byte) 0x4e,
-				(byte) 0x46, (byte) 0xf8, (byte) 0x35, (byte) 0xaa, (byte) 0x79, (byte) 0x60, (byte) 0xdc, (byte) 0x0d,
-				(byte) 0xa8, (byte) 0x52, (byte) 0x1d, (byte) 0x4a, (byte) 0x68, (byte) 0x14, (byte) 0xd9, (byte) 0x0a,
-				(byte) 0xca, (byte) 0x92, (byte) 0x5f, (byte) 0xa0, (byte) 0x85, (byte) 0xfa, (byte) 0xab, (byte) 0xf4,
-				(byte) 0xe5, (byte) 0x0c };
-
-		resArray = encodeUCoordinate(inputInt);
-
-		System.out.println("Expected: " + Utils.bytesToHex(correctArray));
-		System.out.println("Actual: " + Utils.bytesToHex(resArray));
-		System.out.println("Same: " + Arrays.equals(correctArray, resArray));
-
 		/* Test cswap */
+
+		System.out.println("Test cswap");
 
 		// First no swap
 
@@ -327,27 +238,27 @@ public class SharedSecretCalculation {
 
 		/* Test X25519 */
 		
-		byte[] k0 = new byte[] { (byte) 0xa5, (byte) 0x46, (byte) 0xe3, (byte) 0x6b, (byte) 0xf0, (byte) 0x52,
+		byte[] k = new byte[] { (byte) 0xa5, (byte) 0x46, (byte) 0xe3, (byte) 0x6b, (byte) 0xf0, (byte) 0x52,
 				(byte) 0x7c, (byte) 0x9d, (byte) 0x3b, (byte) 0x16, (byte) 0x15, (byte) 0x4b, (byte) 0x82, (byte) 0x46,
 				(byte) 0x5e, (byte) 0xdd, (byte) 0x62, (byte) 0x14, (byte) 0x4c, (byte) 0x0a, (byte) 0xc1, (byte) 0xfc,
 				(byte) 0x5a, (byte) 0x18, (byte) 0x50, (byte) 0x6a, (byte) 0x22, (byte) 0x44, (byte) 0xba, (byte) 0x44,
 				(byte) 0x9a, (byte) 0xc4 };
-		byte[] u0 = new byte[] { (byte) 0xe6, (byte) 0xdb, (byte) 0x68, (byte) 0x67, (byte) 0x58, (byte) 0x30,
+		byte[] u = new byte[] { (byte) 0xe6, (byte) 0xdb, (byte) 0x68, (byte) 0x67, (byte) 0x58, (byte) 0x30,
 				(byte) 0x30, (byte) 0xdb, (byte) 0x35, (byte) 0x94, (byte) 0xc1, (byte) 0xa4, (byte) 0x24, (byte) 0xb1,
 				(byte) 0x5f, (byte) 0x7c, (byte) 0x72, (byte) 0x66, (byte) 0x24, (byte) 0xec, (byte) 0x26, (byte) 0xb3,
 				(byte) 0x35, (byte) 0x3b, (byte) 0x10, (byte) 0xa9, (byte) 0x03, (byte) 0xa6, (byte) 0xd0, (byte) 0xab,
 				(byte) 0x1c, (byte) 0x4c };
-		byte[] r0 = new byte[] { (byte) 0xc3, (byte) 0xda, (byte) 0x55, (byte) 0x37, (byte) 0x9d, (byte) 0xe9,
+		byte[] c = new byte[] { (byte) 0xc3, (byte) 0xda, (byte) 0x55, (byte) 0x37, (byte) 0x9d, (byte) 0xe9,
 				(byte) 0xc6, (byte) 0x90, (byte) 0x8e, (byte) 0x94, (byte) 0xea, (byte) 0x4d, (byte) 0xf2, (byte) 0x8d,
 				(byte) 0x08, (byte) 0x4f, (byte) 0x32, (byte) 0xec, (byte) 0xcf, (byte) 0x03, (byte) 0x49, (byte) 0x1c,
 				(byte) 0x71, (byte) 0xf7, (byte) 0x54, (byte) 0xb4, (byte) 0x07, (byte) 0x55, (byte) 0x77, (byte) 0xa2,
 				(byte) 0x85, (byte) 0x52 };
 
-		byte[] rp = X25519(k0, u0);
+		byte[] xresult = X25519(k, u);
 		
-		System.out.println("RP: " + Utils.bytesToHex(rp));
+		System.out.println("R: " + Utils.bytesToHex(xresult));
+		System.out.println("X25519 result is correct: " + Arrays.equals(c, xresult));
 
-		// X25519(u, v);
 	}
 
 	private static byte[] X25519(byte[] k, byte[] u) {
@@ -546,7 +457,6 @@ public class SharedSecretCalculation {
 		for (int i = 0; i < ((bits + 7) / 8); i++) {
 			BigInteger temp = u.shiftRight(8 * i);
 			byte[] temp2 = temp.toByteArray();
-			// System.out.println((byte) (temp2[temp2.length - 1]));
 
 			res[i] = temp2[temp2.length - 1];
 		}
@@ -579,140 +489,6 @@ public class SharedSecretCalculation {
 			return new Tuple(a, b);
 		}
 
-	}
-
-	///////////////////////////
-
-
-	/**
-	 * Calculate Curve25519 u coordinate from Ed25519 y coordinate
-	 * 
-	 * @param y the Ed25519 y coordinate
-	 * @return the Curve25519 u coordinate
-	 */
-	private static FieldElement calcCurve25519_u(FieldElement y) {
-
-		/* Calculate u from y */
-		// u = (1+y)/(1-y)
-
-		// 1 + y -> y + 1
-		FieldElement one_plus_y = y.addOne();
-
-		// 1 - y -> -y + 1
-		FieldElement one_minus_y = (y.negate()).addOne();
-
-		// invert(1 - y)
-		FieldElement one_minus_y_invert = one_minus_y.invert();
-
-		// (1 + y) / (1 - y) -> (1 + y) * invert(1 - y)
-		FieldElement u = one_plus_y.multiply(one_minus_y_invert);
-
-		return u;
-
-	}
-
-	/**
-	 * Calculate Curve25519 v coordinate from Ed25519 x coordinate and
-	 * Curve25519 u coordinate
-	 * 
-	 * @param x the Ed25519 x coordinate
-	 * @param u the Curve25519 u coordinate
-	 * @return the Curve25519 v coordinate
-	 */
-	private static FieldElement calcCurve25519_v(FieldElement x, FieldElement u) {
-
-		/* Calculate v from u and x */
-		// v = sqrt(-486664)*u/x
-
-		// invert(x)
-		FieldElement x_invert = x.invert();
-
-		// u / x -> u * invert(x)
-		FieldElement u_over_x = u.multiply(x_invert);
-
-		// calculate v
-		FieldElement v = root.multiply(u_over_x);
-
-		return v;
-
-	}
-
-	/* COSE related functions below */
-
-	/**
-	 * Extract the y point coordinate from a COSE Key (OneKey). Alternative way
-	 * using division.
-	 * 
-	 * @param key the COSE key
-	 * @return the y point coordinate
-	 * 
-	 * @throws CoseException if retrieving public key part fails
-	 */
-	private static FieldElement extractCOSE_y_alt(OneKey key) throws CoseException {
-		EdDSAPublicKey pubKey = (EdDSAPublicKey) key.AsPublicKey();
-
-		// Get projective coordinates for Y and Z
-		FieldElement Y = pubKey.getA().getY();
-		FieldElement Z = pubKey.getA().getZ();
-
-		// y = Y/Z -> y = Y * invert(Z)
-		FieldElement recip = Z.invert();
-		FieldElement y = Y.multiply(recip);
-
-		return y;
-	}
-
-	/**
-	 * Extract the y point coordinate from a COSE Key (OneKey). Way using the X
-	 * value of the key directly, clearing one bit.
-	 * https://tools.ietf.org/html/rfc8032#section-5.1.2
-	 * 
-	 * @param key the COSE key
-	 * @return the y point coordinate
-	 * 
-	 * @throws CoseException if retrieving public key part fails
-	 */
-	private static FieldElement extractCOSE_y(OneKey key) throws CoseException {
-
-		// Retrieve X value from COSE key as byte array
-		byte[] X_value = key.get(KeyKeys.OKP_X).GetByteString();
-
-		// Clear most significant bit of the final octet in the X value (that
-		// indicates sign of x coordinate). The result is the y coordinate.
-		byte[] y_array = X_value.clone();
-		y_array[y_array.length - 1] &= 0B01111111;
-
-		// The array must be reversed to have correct byte order
-		// BigInteger wants Big Endian but it is in Little Endian
-		byte[] y_array_inv = invertArray(y_array);
-		
-		// Create field element for y from updated X value
-		FieldElement y = new BigIntegerFieldElement(ed25519Field, new BigInteger(y_array_inv));
-
-		return y;
-	}
-
-	/**
-	 * Extract the x point coordinate from a COSE Key (OneKey). Way using
-	 * division.
-	 * 
-	 * @param key the COSE key
-	 * @return the x point coordinate
-	 * 
-	 * @throws CoseException if retrieving public key part fails
-	 */
-	private static FieldElement extractCOSE_x(OneKey key) throws CoseException {
-		EdDSAPublicKey pubKey = (EdDSAPublicKey) key.AsPublicKey();
-
-		// Get projective coordinates for X and Z
-		FieldElement X = pubKey.getA().getX();
-		FieldElement Z = pubKey.getA().getZ();
-
-		// x = X/Z -> x = X * invert(Z)
-		FieldElement recip = Z.invert();
-		FieldElement x = X.multiply(recip);
-
-		return x;
 	}
 
 	/**
