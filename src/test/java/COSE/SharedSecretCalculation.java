@@ -474,6 +474,27 @@ public class SharedSecretCalculation {
 
 	}
 
+	
+	private static byte[] calculateSharedSecret(OneKey publicKey, OneKey privateKey) throws CoseException {
+
+		/* Calculate u coordinate from public key */
+		
+		FieldElement public_y = KeyRemapping.extractCOSE_y(publicKey);
+		FieldElement public_u = KeyRemapping.calcCurve25519_u(public_y);
+		byte[] public_u_array = public_u.toByteArray();
+
+		/* Get private scalar from private key */
+
+		byte[] private_hash = ((EdDSAPrivateKey) privateKey.AsPrivateKey()).getH();
+		byte[] private_scalar = Arrays.copyOf(private_hash, 32);
+
+		/* -- Calculated shared secret -- */
+		// secret = X25519(my private scalar, your public key U)
+
+		byte[] sharedSecret = X25519(private_scalar, public_u_array);
+		
+		return sharedSecret;
+	}
 
 	private static void sharedSecretTest() throws CoseException {
 
